@@ -1,14 +1,15 @@
-import { defineChain, type Address, type Chain, type Hex } from "viem";
+import dotenv from "dotenv";
+import { type Address, type Chain, type Hex } from "viem";
+
 import { chainConfigs } from "./config";
 import type { ChainConfig } from "./types";
-import dotenv from "dotenv";
 
 dotenv.config();
 
 export function chainConfig(chainId: number): ChainConfig {
   const config = chainConfigs[chainId];
   if (!config) {
-    throw new Error(`No config found for chainId ${chainId}`);
+    throw new Error("No config found for chainId");
   }
 
   const {
@@ -17,7 +18,7 @@ export function chainConfig(chainId: number): ChainConfig {
     additionalMarketsWhitelist,
     executorAddress,
     liquidationPrivateKey,
-  } = getSecrets(chainId, config.chain);
+  } = getSecrets(chainId.toString(), config.chain);
   return {
     ...config,
     chainId,
@@ -29,7 +30,7 @@ export function chainConfig(chainId: number): ChainConfig {
   };
 }
 
-export function getSecrets(chainId: number, chain?: Chain) {
+export function getSecrets(chainId: string, chain?: Chain) {
   const defaultRpcUrl = chain?.rpcUrls.default.http[0];
 
   const rpcUrl = process.env[`RPC_URL_${chainId}`] ?? defaultRpcUrl;
@@ -59,4 +60,3 @@ export function getSecrets(chainId: number, chain?: Chain) {
 
 export { chainConfigs, type ChainConfig };
 export * from "./liquidityVenues";
-

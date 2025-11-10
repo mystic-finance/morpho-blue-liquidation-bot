@@ -1,38 +1,38 @@
-import { base, mainnet } from "viem/chains";
-import type { Config } from "./types";
 import { defineChain } from "viem";
 
-const sourceId = 1 // ethereum
+import type { Config } from "./types";
+
+const sourceId = 1; // ethereum
 
 export const plume = /*#__PURE__*/ defineChain({
   id: 98_866,
-  name: 'Plume Mainnet',
+  name: "Plume Mainnet",
   nativeCurrency: {
-    name: 'Plume',
-    symbol: 'Plume',
+    name: "Plume",
+    symbol: "Plume",
     decimals: 18,
   },
   rpcUrls: {
     default: {
-      http: ['https://rpc.plume.org'],
-      webSocket: ['wss://rpc.plume.org'],
+      http: ["https://rpc.plume.org"],
+      webSocket: ["wss://rpc.plume.org"],
     },
   },
   blockExplorers: {
     default: {
-      name: 'Blockscout',
-      url: 'https://explorer.plume.org',
-      apiUrl: 'https://explorer.plume.org/api',
+      name: "Blockscout",
+      url: "https://explorer.plume.org",
+      apiUrl: "https://explorer.plume.org/api",
     },
   },
   contracts: {
     multicall3: {
-      address: '0xca11bde05977b3631167028862be2a173976ca11',
+      address: "0xca11bde05977b3631167028862be2a173976ca11",
       blockCreated: 48_577,
     },
   },
   sourceId,
-})
+});
 
 export const chainConfigs: Record<number, Config> = {
   // [mainnet.id]: {
@@ -82,10 +82,8 @@ export const chainConfigs: Record<number, Config> = {
       startBlock: 765994,
     },
     metaMorphoFactories: {
-      addresses: [
-        "0x2525D453D9BA13921D5aB5D8c12F9202b0e19456",
-      ],
+      addresses: ["0x2525D453D9BA13921D5aB5D8c12F9202b0e19456"],
       startBlock: 765994,
     },
-  }
+  },
 };
