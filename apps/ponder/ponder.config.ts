@@ -1,7 +1,6 @@
+import { chainConfig, chainConfigs } from "@morpho-blue-liquidation-bot/config";
 import { createConfig, factory } from "ponder";
 import { type AbiEvent, getAbiItem, http } from "viem";
-
-import { chainConfig, chainConfigs } from "@morpho-blue-liquidation-bot/config";
 
 import { adaptiveCurveIrmAbi } from "./abis/AdaptiveCurveIrm";
 import { metaMorphoAbi } from "./abis/MetaMorpho";
@@ -89,6 +88,9 @@ export default createConfig({
   },
   database: {
     kind: "postgres",
+    poolConfig: {
+      ssl: true,
+    },
     connectionString:
       process.env.POSTGRES_DATABASE_URL ?? "postgres://ponder:ponder@localhost:5432/ponder",
   },
