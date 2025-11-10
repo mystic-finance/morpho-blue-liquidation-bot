@@ -1,4 +1,4 @@
-import type { Address, Chain, Hex } from "viem";
+import { defineChain, type Address, type Chain, type Hex } from "viem";
 import { chainConfigs } from "./config";
 import type { ChainConfig } from "./types";
 import dotenv from "dotenv";
@@ -59,3 +59,4 @@ export function getSecrets(chainId: number, chain?: Chain) {
 
 export { chainConfigs, type ChainConfig };
 export * from "./liquidityVenues";
+
