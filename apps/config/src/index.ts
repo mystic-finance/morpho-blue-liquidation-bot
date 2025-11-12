@@ -19,7 +19,7 @@ export function chainConfig(chainId: number): ChainConfig {
     );
   }
 
-  const { rpcUrl, executorAddress, liquidationPrivateKey } = getSecrets(chainId, config.chain);
+  const { rpcUrl, executorAddress, liquidationPrivateKey } = getSecrets(chainId.toString(), config.chain);
   return {
     // Hoist all parameters from `options` up 1 level, i.e. flatten the config as much as possible.
     ...(({ options, ...c }) => ({ ...options, ...c }))(config),
