@@ -1,5 +1,5 @@
 import dotenv from "dotenv";
-import { type Address, type Chain, type Hex } from "viem";
+import type { Address, Chain, Hex } from "viem";
 
 import { chainConfigs } from "./config";
 import type { ChainConfig } from "./types";
@@ -12,21 +12,21 @@ export function chainConfig(chainId: number): ChainConfig {
     throw new Error("No config found for chainId");
   }
 
-  const {
-    rpcUrl,
-    vaultWhitelist,
-    additionalMarketsWhitelist,
-    executorAddress,
-    liquidationPrivateKey,
-  } = getSecrets(chainId.toString(), config.chain);
+  const { vaultWhitelist, additionalMarketsWhitelist } = config.options;
+  if (vaultWhitelist.length === 0 && additionalMarketsWhitelist.length === 0) {
+    throw new Error(
+      `Vault whitelist and additional markets whitelist both empty for chainId ${chainId}`,
+    );
+  }
+
+  const { rpcUrl, executorAddress, liquidationPrivateKey } = getSecrets(chainId, config.chain);
   return {
-    ...config,
+    // Hoist all parameters from `options` up 1 level, i.e. flatten the config as much as possible.
+    ...(({ options, ...c }) => ({ ...options, ...c }))(config),
     chainId,
     rpcUrl,
     executorAddress,
     liquidationPrivateKey,
-    vaultWhitelist,
-    additionalMarketsWhitelist,
   };
 }
 
@@ -34,9 +34,6 @@ export function getSecrets(chainId: string, chain?: Chain) {
   const defaultRpcUrl = chain?.rpcUrls.default.http[0];
 
   const rpcUrl = process.env[`RPC_URL_${chainId}`] ?? defaultRpcUrl;
-  const vaultWhitelist = process.env[`VAULT_WHITELIST_${chainId}`]?.split(",") ?? [];
-  const additionalMarketsWhitelist =
-    process.env[`ADDITIONAL_MARKETS_WHITELIST_${chainId}`]?.split(",") ?? [];
   const executorAddress = process.env[`EXECUTOR_ADDRESS_${chainId}`];
   const liquidationPrivateKey = process.env[`LIQUIDATION_PRIVATE_KEY_${chainId}`];
 
@@ -51,12 +48,13 @@ export function getSecrets(chainId: string, chain?: Chain) {
   }
   return {
     rpcUrl,
-    vaultWhitelist: vaultWhitelist as Address[],
-    additionalMarketsWhitelist: additionalMarketsWhitelist as Hex[],
     executorAddress: executorAddress as Address,
     liquidationPrivateKey: liquidationPrivateKey as Hex,
   };
 }
 
+export * from "./chains";
 export { chainConfigs, type ChainConfig };
 export * from "./liquidityVenues";
+export * from "./pricers";
+export { COOLDOWN_PERIOD, COOLDOWN_ENABLED, ALWAYS_REALIZE_BAD_DEBT } from "./config";

@@ -1,14 +1,5 @@
 import type { Address, Chain, Hex } from "viem";
 
-export type ChainConfig = Config & {
-  chainId: number;
-  rpcUrl: string;
-  vaultWhitelist: Address[];
-  additionalMarketsWhitelist: Hex[];
-  executorAddress: Address;
-  liquidationPrivateKey: Hex;
-};
-
 export interface Config {
   chain: Chain;
   morpho: {
@@ -23,4 +14,28 @@ export interface Config {
     addresses: Address[];
     startBlock: number;
   };
+  preLiquidationFactory: {
+    address: Address;
+    startBlock: number;
+  };
+  wNative: Address;
+  options: Options;
 }
+
+export interface Options {
+  vaultWhitelist: Address[] | "morpho-api";
+  additionalMarketsWhitelist: Hex[];
+  checkProfit: boolean;
+  treasuryAddress?: Address;
+  liquidationBufferBps?: number;
+  useFlashbots: boolean;
+  blockInterval?: number;
+}
+
+export type ChainConfig = Omit<Config, "options"> &
+  Options & {
+    chainId: number;
+    rpcUrl: string;
+    executorAddress: Address;
+    liquidationPrivateKey: Hex;
+  };

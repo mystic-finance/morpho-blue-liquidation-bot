@@ -1,3 +1,10 @@
+import {
+  FEE_TIERS,
+  DEFAULT_FACTORY_ADDRESS,
+  specificFactoryAddresses,
+  MAX_SQRT_RATIO,
+  MIN_SQRT_RATIO,
+} from "@morpho-blue-liquidation-bot/config";
 import { executorAbi, type ExecutorEncoder } from "executooor-viem";
 import {
   type Address,
@@ -9,19 +16,11 @@ import {
 } from "viem";
 import { readContract } from "viem/actions";
 
+import { uniswapV3FactoryAbi, uniswapV3PoolAbi } from "../../abis/uniswapV3";
 import type { ToConvert } from "../../utils/types";
 import type { LiquidityVenue } from "../liquidityVenue";
 
-import { uniswapV3FactoryAbi, uniswapV3PoolAbi } from "./abis";
-import {
-  FEE_TIERS,
-  DEFAULT_FACTORY_ADDRESS,
-  specificFactoryAddresses,
-  MAX_SQRT_RATIO,
-  MIN_SQRT_RATIO,
-} from "@morpho-blue-liquidation-bot/config";
-
-export class UniswapV3 implements LiquidityVenue {
+export class UniswapV3Venue implements LiquidityVenue {
   private pools: Record<Address, Record<Address, Address[]>> = {};
 
   async supportsRoute(encoder: ExecutorEncoder, src: Address, dst: Address) {
@@ -61,7 +60,7 @@ export class UniswapV3 implements LiquidityVenue {
       )?.pool;
 
       if (!biggestPool) {
-        throw new Error("No Uniswap pool found");
+        throw new Error("(UniswapV3) No Uniswap pool found");
       }
 
       const zeroForOne = fromHex(src, "bigint") < fromHex(dst, "bigint");
@@ -112,9 +111,9 @@ export class UniswapV3 implements LiquidityVenue {
         srcAmount: 0n,
       };
     } catch (error) {
-      console.log(`Error swapping ${src} to ${dst} on UniswapV3`);
-      console.error(error);
-      return toConvert;
+      throw new Error(
+        `(UniswapV3) Error swapping: ${error instanceof Error ? error.message : String(error)}`,
+      );
     }
   }
 
@@ -148,11 +147,9 @@ export class UniswapV3 implements LiquidityVenue {
 
       return newPools;
     } catch (error) {
-      console.log(
-        `Error fetching UniswapV3 pools for src: ${src} and dst: ${dst}. Check if the factory address is correct.`,
+      throw new Error(
+        `(UniswapV3) Error fetching pools: ${error instanceof Error ? error.message : String(error)}`,
       );
-      console.error(error);
-      return [];
     }
   }
 }

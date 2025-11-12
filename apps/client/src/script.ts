@@ -1,51 +1,101 @@
-import { spawn } from "node:child_process";
+import { type ChildProcess, spawn } from "node:child_process";
+
 import { chainConfigs, chainConfig } from "@morpho-blue-liquidation-bot/config";
+
 import { launchBot } from ".";
 
-const PONDER_API_CHECK = "http://localhost:42069/ready";
+async function sleep(ms: number) {
+  return new Promise<void>((resolve) =>
+    setTimeout(() => {
+      resolve();
+    }, ms),
+  );
+}
 
-async function waitForIndexing() {
-  return new Promise<void>((resolve) => {
-    const interval = setInterval(async () => {
-      try {
-        const res = await fetch(PONDER_API_CHECK);
-        if (res.status === 200) {
-          console.log("✅ indexing is done");
-          clearInterval(interval);
-          resolve();
-        }
-      } catch {}
-    }, 1000);
-  });
+async function isPonderRunning(apiUrl: string) {
+  try {
+    const controller = new AbortController();
+    setTimeout(() => {
+      controller.abort();
+    }, 5000);
+    await fetch(`${apiUrl}/ready`, { signal: controller.signal });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function isPonderReady(apiUrl: string) {
+  try {
+    const response = await fetch(`${apiUrl}/ready`);
+    return response.status === 200;
+  } catch (e) {
+    // @ts-expect-error: error cause is poorly typed.
+    if (e instanceof TypeError && e.cause?.code === "ENOTFOUND") {
+      console.warn(`⚠️ The ponder service at ${apiUrl} is unreachable. Please check your config.`);
+    }
+    return false;
+  }
+}
+
+async function waitForIndexing(apiUrl: string) {
+  while (!(await isPonderReady(apiUrl))) {
+    console.log("⏳ Ponder is indexing");
+    await sleep(1000);
+  }
 }
 
 async function run() {
-  const configs = Object.keys(chainConfigs).map((config) => chainConfig(Number(config)));
+  let ponder: ChildProcess | undefined;
 
-  if (process.env.POSTGRES_DATABASE_URL === undefined) {
-    spawn("docker", ["compose", "up", "-d"]);
-    console.log("Waiting for postgres to be ready...");
-    await new Promise((resolve) => setTimeout(resolve, 5000));
+  const configs = Object.keys(chainConfigs)
+    .map((config) => {
+      try {
+        return chainConfig(Number(config));
+      } catch {
+        return undefined;
+      }
+    })
+    .filter((config) => config !== undefined);
+
+  const apiUrl = process.env.PONDER_SERVICE_URL ?? "http://localhost:42069";
+  const shouldExpectPonderToRunLocally =
+    apiUrl.includes("localhost") || apiUrl.includes("0.0.0.0") || apiUrl.includes("127.0.0.1");
+
+  // If the ponder service isn't responding, see if we can start it.
+  if (shouldExpectPonderToRunLocally && !(await isPonderRunning(apiUrl))) {
+    console.log("🚦 Starting ponder service locally:");
+    // If `POSTGRES_DATABASE_URL === undefined`, we assume postgres is meant to be run locally.
+    // Start that first.
+    if (process.env.POSTGRES_DATABASE_URL === undefined) {
+      spawn("docker", ["compose", "up", "-d"]);
+      console.log("→ Spawning docker container for postgres...");
+      await sleep(5000);
+    }
+
+    // Then start ponder service, regardless of where database is.
+    ponder = spawn(
+      "pnpm",
+      ["ponder", "start", "--schema", "public", "--config", "ponder.config.ts"],
+      { stdio: "inherit", cwd: "apps/ponder" },
+    );
+
+    console.log("→ Spawning ponder...");
   }
 
-  const ponder = spawn(
-    "pnpm",
-    ["ponder", "start", "--schema", "ponder.schema.ts", "--config", "ponder.config.ts"],
-    { stdio: "inherit", cwd: "apps/ponder" },
-  );
-
-  console.log("Ponder is indexing...");
-
   try {
-    await waitForIndexing();
+    await waitForIndexing(apiUrl);
+    console.log("✅ Ponder is ready");
 
     // biome-ignore lint/complexity/noForEach: <explanation>
-    configs.forEach((config) => launchBot(config));
+    configs.forEach((config) => {
+      launchBot(config);
+    });
   } catch (err) {
     console.error(err);
-    ponder.kill("SIGTERM");
+    if (ponder) ponder.kill("SIGTERM");
     process.exit(1);
   }
 }
 
-run();
+void run();

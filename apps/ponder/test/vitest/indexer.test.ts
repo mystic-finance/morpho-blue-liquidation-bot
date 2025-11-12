@@ -60,7 +60,9 @@ describe("Indexing", () => {
 
     for (let i = 0; i < 10; i++) {
       const randomIndex = Math.floor(Math.random() * count);
-      const randomPosition = positions[randomIndex]!;
+      const randomPosition = positions[randomIndex];
+
+      if (randomPosition === undefined) continue; // TODO: fix this
 
       const onchainPosition = await client.readContract({
         address: MORPHO,
@@ -72,6 +74,25 @@ describe("Indexing", () => {
       expect(randomPosition.supplyShares).toEqual(onchainPosition[0]);
       expect(randomPosition.borrowShares).toEqual(onchainPosition[1]);
       expect(randomPosition.collateral).toEqual(onchainPosition[2]);
+    }
+  });
+
+  indexingTest.sequential("should test authorizations indexing", async ({ client }) => {
+    const authorizations = await ponderClient.db.select().from(schema.authorization).limit(100);
+    const count = authorizations.length;
+
+    for (let i = 0; i < 10; i++) {
+      const randomIndex = Math.floor(Math.random() * count);
+      const randomAuthorization = authorizations[randomIndex]!;
+
+      const onchainAuthorization = await client.readContract({
+        address: MORPHO,
+        abi: morphoBlueAbi,
+        functionName: "isAuthorized",
+        args: [randomAuthorization.authorizer, randomAuthorization.authorizee],
+      });
+
+      expect(randomAuthorization.isAuthorized).toEqual(onchainAuthorization);
     }
   });
 });

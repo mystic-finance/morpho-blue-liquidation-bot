@@ -1,15 +1,21 @@
-import { createWalletClient, http } from "viem";
+import type { ChainConfig } from "@morpho-blue-liquidation-bot/config";
+import { createWalletClient, Hex, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { watchBlocks } from "viem/actions";
 
-import { LiquidationBot } from "./bot";
-
-import { UniswapV3 } from "./liquidityVenues/uniswapV3";
+import { LiquidationBot, type LiquidationBotInputs } from "./bot";
 import { Erc20Wrapper } from "./liquidityVenues/erc20Wrapper";
 import { Erc4626 } from "./liquidityVenues/erc4626";
-import type { ChainConfig } from "@morpho-blue-liquidation-bot/config";
+import type { LiquidityVenue } from "./liquidityVenues/liquidityVenue";
+import { UniswapV3Venue } from "./liquidityVenues/uniswapV3";
+import { UniswapV4Venue } from "./liquidityVenues/uniswapV4";
+import { ChainlinkPricer, DefiLlamaPricer } from "./pricers";
+import type { Pricer } from "./pricers/pricer";
 
 export const launchBot = (config: ChainConfig) => {
+  const logTag = `[${config.chain.name} client]: `;
+  console.log(`${logTag}Starting up`);
+
   const client = createWalletClient({
     chain: config.chain,
     transport: http(config.rpcUrl),
@@ -17,24 +23,62 @@ export const launchBot = (config: ChainConfig) => {
   });
 
   // LIQUIDITY VENUES
-  const liquidityVenues = [];
+  const liquidityVenues: LiquidityVenue[] = [];
   liquidityVenues.push(new Erc20Wrapper());
   liquidityVenues.push(new Erc4626());
-  liquidityVenues.push(new UniswapV3());
+  liquidityVenues.push(new UniswapV3Venue());
+  liquidityVenues.push(new UniswapV4Venue());
 
-  const bot = new LiquidationBot(
-    config.chainId,
+  // PRICERS
+  const pricers: Pricer[] = [];
+  pricers.push(new DefiLlamaPricer());
+  pricers.push(new ChainlinkPricer());
+
+  if (config.checkProfit && pricers.length === 0) {
+    throw new Error(`${logTag} You must configure pricers!`);
+  }
+
+  let flashbotAccount = undefined;
+  if (config.useFlashbots) {
+    const flashbotsPrivateKey = process.env.FLASHBOTS_PRIVATE_KEY;
+
+    if (flashbotsPrivateKey === undefined) {
+      throw new Error(`${logTag} FLASHBOTS_PRIVATE_KEY is not set`);
+    }
+
+    flashbotAccount = privateKeyToAccount(process.env.FLASHBOTS_PRIVATE_KEY as Hex);
+  }
+
+  const inputs: LiquidationBotInputs = {
+    logTag,
+    chainId: config.chainId,
     client,
-    config.morpho.address,
-    config.vaultWhitelist,
-    config.additionalMarketsWhitelist,
-    config.executorAddress,
+    morphoAddress: config.morpho.address,
+    wNative: config.wNative,
+    vaultWhitelist: config.vaultWhitelist,
+    additionalMarketsWhitelist: config.additionalMarketsWhitelist,
+    executorAddress: config.executorAddress,
+    treasuryAddress: config.treasuryAddress ?? client.account.address,
     liquidityVenues,
-  );
+    pricers: config.checkProfit ? pricers : undefined,
+    flashbotAccount,
+  };
+
+  const bot = new LiquidationBot(inputs);
+
+  const blockInterval = config.blockInterval ?? 1;
+  let count = 0;
 
   watchBlocks(client, {
     onBlock: () => {
-      void bot.run();
+      if (count % blockInterval === 0) {
+        try {
+          void bot.run();
+        } catch (e) {
+          console.error(`${logTag} uncaught error in bot.run():`, e);
+        }
+      }
+      count++;
     },
   });
 };
