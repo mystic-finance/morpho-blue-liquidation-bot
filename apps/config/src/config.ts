@@ -1,4 +1,5 @@
 import { base, mainnet, unichain, worldchain } from "viem/chains";
+import { defineChain } from "viem";
 
 import { hyperevm, katana } from "./chains";
 import type { Config } from "./types";
@@ -7,41 +8,73 @@ export const COOLDOWN_ENABLED = false; // true if you want to enable the cooldow
 export const COOLDOWN_PERIOD = 60 * 60; // 1 hour
 export const ALWAYS_REALIZE_BAD_DEBT = false; // true if you want to always realize bad debt
 
-export const chainConfigs: Record<number, Config> = {
-  [mainnet.id]: {
-    chain: mainnet,
-    morpho: {
-      address: "0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb",
-      startBlock: 18883124,
-    },
-    adaptiveCurveIrm: {
-      address: "0x870aC11D48B15DB9a138Cf899d20F13F79Ba00BC",
-      startBlock: 18883124,
-    },
-    metaMorphoFactories: {
-      addresses: [
-        "0x1897A8997241C1cD4bD0698647e4EB7213535c24",
-        "0xA9c3D3a366466Fa809d1Ae982Fb2c46E5fC41101",
-      ],
-      startBlock: 18925584,
-    },
-    preLiquidationFactory: {
-      address: "0x6FF33615e792E35ed1026ea7cACCf42D9BF83476",
-      startBlock: 21414664,
-    },
-    wNative: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
-    options: {
-      vaultWhitelist: [
-        "0xBEEF01735c132Ada46AA9aA4c54623cAA92A64CB",
-        "0x8eB67A509616cd6A7c1B3c8C21D48FF57df3d458",
-      ],
-      additionalMarketsWhitelist: [
-        "0x1eda1b67414336cab3914316cb58339ddaef9e43f939af1fed162a989c98bc20",
-      ],
-      checkProfit: true,
-      liquidationBufferBps: 50,
-      useFlashbots: true,
-      blockInterval: 2,
+// export const chainConfigs: Record<number, Config> = {
+//   [mainnet.id]: {
+//     chain: mainnet,
+//     morpho: {
+//       address: "0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb",
+//       startBlock: 18883124,
+//     },
+//     adaptiveCurveIrm: {
+//       address: "0x870aC11D48B15DB9a138Cf899d20F13F79Ba00BC",
+//       startBlock: 18883124,
+//     },
+//     metaMorphoFactories: {
+//       addresses: [
+//         "0x1897A8997241C1cD4bD0698647e4EB7213535c24",
+//         "0xA9c3D3a366466Fa809d1Ae982Fb2c46E5fC41101",
+//       ],
+//       startBlock: 18925584,
+//     },
+//     preLiquidationFactory: {
+//       address: "0x6FF33615e792E35ed1026ea7cACCf42D9BF83476",
+//       startBlock: 21414664,
+//     },
+//     wNative: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+//     options: {
+//       vaultWhitelist: [
+//         "0xBEEF01735c132Ada46AA9aA4c54623cAA92A64CB",
+//         "0x8eB67A509616cd6A7c1B3c8C21D48FF57df3d458",
+//       ],
+//       additionalMarketsWhitelist: [
+//         "0x1eda1b67414336cab3914316cb58339ddaef9e43f939af1fed162a989c98bc20",
+//       ],
+//       checkProfit: true,
+//       liquidationBufferBps: 50,
+//       useFlashbots: true,
+//       blockInterval: 2,
+//     },
+//   },
+//   blockExplorers: {
+//     default: {
+//       name: "Blockscout",
+//       url: "https://explorer.plume.org",
+//       apiUrl: "https://explorer.plume.org/api",
+//     },
+//   },
+//   contracts: {
+//     multicall3: {
+//       address: "0xca11bde05977b3631167028862be2a173976ca11",
+//       blockCreated: 48_577,
+//     },
+//   },
+//   sourceId,
+// });
+
+const sourceId = 1; // ethereum
+
+export const plume = /*#__PURE__*/ defineChain({
+  id: 98_866,
+  name: "Plume Mainnet",
+  nativeCurrency: {
+    name: "Plume",
+    symbol: "Plume",
+    decimals: 18,
+  },
+  rpcUrls: {
+    default: {
+      http: ["https://rpc.plume.org"],
+      webSocket: ["wss://rpc.plume.org"],
     },
   },
   blockExplorers: {
@@ -117,9 +150,9 @@ export const chainConfigs: Record<number, Config> = {
     },
     wNative: "0x4200000000000000000000000000000000000006",
     options: {
-      vaultWhitelist: ["0xbeeF010f9cb27031ad51e3333f9aF9C6B1228183"],
+      vaultWhitelist: ["0xc0Df5784f28046D11813356919B869dDA5815B16", '0x0b14D0bdAf647c541d3887c5b1A4bd64068fCDA7'. '0xBB748a1346820560875CB7a9cD6B46c203230E07'],
       additionalMarketsWhitelist: [],
-      checkProfit: true,
+      checkProfit: false,
       useFlashbots: false,
       blockInterval: 10,
     },
