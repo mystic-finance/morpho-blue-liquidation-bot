@@ -28,8 +28,10 @@ async function isPonderRunning(apiUrl: string) {
 async function isPonderReady(apiUrl: string) {
   try {
     const response = await fetch(`${apiUrl}/ready`);
+    console.log({response})
     return response.status === 200;
   } catch (e) {
+    console.log(e)
     // @ts-expect-error: error cause is poorly typed.
     if (e instanceof TypeError && e.cause?.code === "ENOTFOUND") {
       console.warn(`⚠️ The ponder service at ${apiUrl} is unreachable. Please check your config.`);
@@ -39,7 +41,9 @@ async function isPonderReady(apiUrl: string) {
 }
 
 async function waitForIndexing(apiUrl: string) {
+  
   while (!(await isPonderReady(apiUrl))) {
+    console.log(await isPonderReady(apiUrl))
     console.log("⏳ Ponder is indexing");
     await sleep(1000);
   }
@@ -58,7 +62,7 @@ async function run() {
     })
     .filter((config) => config !== undefined);
 
-  const apiUrl = process.env.PONDER_SERVICE_URL ?? "http://localhost:42069";
+  const apiUrl =  process.env.PONDER_SERVICE_URL ?? "http://localhost:42069";
   const shouldExpectPonderToRunLocally =
     apiUrl.includes("localhost") || apiUrl.includes("0.0.0.0") || apiUrl.includes("127.0.0.1");
 
