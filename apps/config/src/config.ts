@@ -4,9 +4,9 @@ import { defineChain } from "viem";
 import { hyperevm, katana } from "./chains";
 import type { Config } from "./types";
 
-export const COOLDOWN_ENABLED = false; // true if you want to enable the cooldown mechanism
-export const COOLDOWN_PERIOD = 60 * 60; // 1 hour
-export const ALWAYS_REALIZE_BAD_DEBT = false; // true if you want to always realize bad debt
+export const COOLDOWN_ENABLED = true; // true if you want to enable the cooldown mechanism
+export const COOLDOWN_PERIOD = 60 * 5; // 1 hour
+export const ALWAYS_REALIZE_BAD_DEBT = true; // true if you want to always realize bad debt
 
 // export const chainConfigs: Record<number, Config> = {
 //   [mainnet.id]: {
@@ -146,15 +146,15 @@ export const chainConfigs: Record<number, Config> = {
     },
     preLiquidationFactory: {
       address: "0x8cd16b62E170Ee0bA83D80e1F80E6085367e2aef",
-      startBlock: 23779056,
+      startBlock: 765994,
     },
-    wNative: "0x4200000000000000000000000000000000000006",
+    wNative: "0xEa237441c92CAe6FC17Caaf9a7acB3f953be4bd1",
     options: {
       vaultWhitelist: ["0xc0Df5784f28046D11813356919B869dDA5815B16", '0x0b14D0bdAf647c541d3887c5b1A4bd64068fCDA7', '0xBB748a1346820560875CB7a9cD6B46c203230E07'],
-      additionalMarketsWhitelist: [],
+      additionalMarketsWhitelist: ["0x4e5b50278bf256f0af3d2b696545cba3de02dacba6bea930bdd5cf83dd4304f4"],
       checkProfit: false,
-      useFlashbots: false,
-      blockInterval: 10,
+      useFlashbots: true,
+      blockInterval: 50,
     },
   },
   [unichain.id]: {
