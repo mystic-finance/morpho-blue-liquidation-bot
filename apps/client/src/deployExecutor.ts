@@ -26,7 +26,7 @@ async function run() {
 
     const client = createWalletClient({
       chain,
-      transport: http(rpcUrl),
+      transport: http(rpcUrl, { timeout: 45_000, retryDelay: 500, retryCount: 3 }),
       account: privateKeyToAccount(privateKey as Hex),
     });
 

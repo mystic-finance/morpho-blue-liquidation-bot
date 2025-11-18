@@ -19,7 +19,7 @@ export const launchBot = (config: ChainConfig) => {
 
   const client = createWalletClient({
     chain: config.chain,
-    transport: http(config.rpcUrl),
+    transport: http(config.rpcUrl, { timeout: 45_000, retryDelay: 500, retryCount: 3 }),
     account: privateKeyToAccount(config.liquidationPrivateKey),
   });
 
