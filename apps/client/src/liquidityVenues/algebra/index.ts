@@ -1,8 +1,8 @@
 import {
-    DEFAULT_FACTORY_ADDRESS,
+    DEFAULT_ALGEBRA_FACTORY_ADDRESS,
     MAX_SQRT_RATIO,
     MIN_SQRT_RATIO,
-    specificFactoryAddresses,
+    specificAlgrebraFactoryAddresses,
   } from "@morpho-blue-liquidation-bot/config";
   import { executorAbi, type ExecutorEncoder } from "executooor-viem";
   import {
@@ -24,6 +24,7 @@ import {
   
     async supportsRoute(encoder: ExecutorEncoder, src: Address, dst: Address) {
       if (src === dst) return false;
+      if(!specificAlgrebraFactoryAddresses[encoder.client.chain.id]) return false;
   
       const pool = this.getCachedPool(src, dst) ?? (await this.fetchPool(encoder, src, dst));
   
@@ -114,7 +115,7 @@ import {
   
     private async fetchPool(encoder: ExecutorEncoder, src: Address, dst: Address) {
       const factoryAddress =
-        specificFactoryAddresses[encoder.client.chain.id] ?? DEFAULT_FACTORY_ADDRESS;
+      specificAlgrebraFactoryAddresses[encoder.client.chain.id] ?? DEFAULT_ALGEBRA_FACTORY_ADDRESS;
       const [token0, token1] = fromHex(src, "bigint") < fromHex(dst, "bigint") ? [src, dst] : [dst, src];
   
       try {

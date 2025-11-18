@@ -25,6 +25,7 @@ export class UniswapV3Venue implements LiquidityVenue {
 
   async supportsRoute(encoder: ExecutorEncoder, src: Address, dst: Address) {
     if (src === dst) return false;
+    if(!specificFactoryAddresses[encoder.client.chain.id]) return false;
 
     const pools = this.getCachedPools(src, dst) ?? (await this.fetchPools(encoder, src, dst));
 
