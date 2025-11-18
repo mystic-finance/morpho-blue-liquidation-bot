@@ -28,6 +28,7 @@ async function isPonderRunning(apiUrl: string) {
 async function isPonderReady(apiUrl: string) {
   try {
     const response = await fetch(`${apiUrl}/ready`);
+    console.log({response})
     return response.status === 200;
   } catch (e) {
     console.log(e)
