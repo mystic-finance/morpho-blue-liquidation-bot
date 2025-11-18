@@ -153,8 +153,8 @@ export const chainConfigs: Record<number, Config> = {
       vaultWhitelist: ["0xc0Df5784f28046D11813356919B869dDA5815B16", '0x0b14D0bdAf647c541d3887c5b1A4bd64068fCDA7', '0xBB748a1346820560875CB7a9cD6B46c203230E07'],
       additionalMarketsWhitelist: ["0x4e5b50278bf256f0af3d2b696545cba3de02dacba6bea930bdd5cf83dd4304f4"],
       checkProfit: false,
-      useFlashbots: true,
-      blockInterval: 50,
+      useFlashbots: false,
+      blockInterval: 10,
     },
   },
   // [unichain.id]: {
